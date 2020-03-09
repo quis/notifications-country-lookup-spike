@@ -1,18 +1,21 @@
-import json
-
 from functools import lru_cache
 
 from notifications_utils.sanitise_text import SanitiseASCII
 from notifications_utils.columns import Columns
+from country_data import (
+    COUNTRIES_AND_TERRITORIES,
+    ADDITIONAL_SYNONYMS,
+    UK_ISLANDS,
+    ROYAL_MAIL_EUROPEAN,
+    UK_POSTAGE_REGIONS,
+    UK,
+    Postage,
+)
 
 
-UK = 'United Kingdom'
-POSTAGE_UK = UK
-POSTAGE_EUROPE = 'Europe'
-POSTAGE_REST_OF_WORLD = 'rest of world'
+class CountryMapping(Columns):
 
-
-class CountryDict(Columns):
+    original_values = {}
 
     @staticmethod
     @lru_cache(maxsize=2048, typed=False)
@@ -28,62 +31,24 @@ class CountryDict(Columns):
 
         return SanitiseASCII.encode(normalised)
 
-
-def _load_data(filename):
-    with open(filename) as contents:
-        if filename.endswith('.json'):
-            return json.load(contents)
-        return [line.strip() for line in contents.readlines()]
+    def __getitem__(self, key):
+        return super().get(key) or super().get(f'the {key}')
 
 
-graph = _load_data('location-autocomplete-graph.json')
-synonyms = _load_data('synonyms.json')
-europe = _load_data('europe.txt')
-uk_islands = _load_data('uk-islands.txt')
+countries = CountryMapping(
+    COUNTRIES_AND_TERRITORIES + ADDITIONAL_SYNONYMS + UK_ISLANDS
+)
 
 
-def find_canonical(item, graph, name):
-    if item['meta']['canonical']:
-        return name, item['names']['en-GB']
-    return find_canonical(
-        graph[item['edges']['from'][0]],
-        graph,
-        name,
-    )
+class Country():
 
+    def __init__(self, given_name):
+        self.canonical_name = countries[given_name]
 
-lookup = CountryDict({})
-traceback = CountryDict({})
-
-for item in graph.values():
-    key, value = find_canonical(item, graph, item['names']['en-GB'])
-    lookup[key] = value
-    traceback[key] = key
-
-for synonym, canonical in synonyms.items():
-    assert CountryDict.make_key(canonical) in lookup.keys()
-    lookup[synonym] = canonical
-    traceback[synonym] = synonym
-
-for synonym in uk_islands:
-    lookup[synonym] = synonym
-    traceback[synonym] = synonym
-
-
-def get_postage_country_or_territory(search_term):
-
-    if lookup.get(search_term):
-        return lookup.get(search_term)
-
-    if lookup.get(f'the {search_term}'):
-        return lookup.get(f'the {search_term}')
-
-    raise IndexError(f'Not found ({search_term})')
-
-
-def get_postage_zone(postage_country_or_territory):
-    if postage_country_or_territory in [UK] + uk_islands:
-        return POSTAGE_UK
-    if postage_country_or_territory in europe:
-        return POSTAGE_EUROPE
-    return POSTAGE_REST_OF_WORLD
+    @property
+    def postage_zone():
+        if self.canonical_name in UK_POSTAGE_REGIONS:
+            return Postage.UK
+        if self.canonical_name in europe:
+            return Postage.EUROPE
+        return Postage.REST_OF_WORLD
