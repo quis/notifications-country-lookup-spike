@@ -1,12 +1,43 @@
-<style type="text/css">*{font-family: -apple-system, sans-serif; font-size: 36px; margin: 1em 0} form, p {margin: 1em 3em}</style>
+<style type="text/css">
+  *{
+    font-family: -apple-system, sans-serif;
+    font-size: 27px;
+  }
+  form, p, div {
+    margin: 1em 3em
+  }
+  label, input, button {
+    display: block;
+    margin-bottom: 1em;
+  }
+  button {
+    display: inline-block;
+    margin-right: 0.62em;
+    padding: 0 0.3em;
+  }
+  #result {
+    background: rgba(255, 255, 180, 0.3);
+    padding: 1em 0;
+  }
+</style>
 <form method="get">
-   <label for="search_term">Search for a country</label>
+   <label for="search_term">Find out if GOV.UK Notify can send a letter to a country</label>
+   <label style="color: #666">For example USA or España</label>
    <input type="text" name="search_term" id="search_term" value="{{search_term}}">
-   <button type="submit">Search</button>
+   <button type="submit">Check</button>
 </form>
-<p>
-  {{result}} {{postage}}
-</p>
-<p style="position: absolute; top: 50%">
-  <a href="/list">Country list</a>
-</p>
+{% if search_term %}
+  <div id="result">
+  {{ result }}
+  {% if result %}
+  <form method="post" action="/feedback">
+    <label for="feedback">Does that feel correct?</label>
+    <input type="hidden" name="search_term" value="{{search_term}}">
+    <input type="hidden" name="country" value="{{country}}">
+    <input type="hidden" name="postage" value="{{postage}}">
+    <button type="submit" name="feedback" value="yes">Yes</button>
+    <button type="submit" name="feedback" value="no">No</button>
+  </form>
+  {% endif %}
+  </div>
+{% endif %}
