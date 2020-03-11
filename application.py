@@ -1,5 +1,7 @@
+import json
+import http.client
 import requests
-
+from urllib.parse import quote_plus
 from flask import Flask, Markup, render_template, request
 from notifications_utils.countries import Country, CountryNotFoundError
 
@@ -42,7 +44,7 @@ def hello():
 
 @app.route('/feedback', methods=['POST'])
 def feedback():
-    url = 'https://hookb.in/9XyoRoZZpPCLqyNYOaLp'
+    url = 'https://engc9uzcryg3gfu.m.pipedream.net'
 
     data = {
         'search_term': request.form.get('search_term'),
@@ -51,7 +53,8 @@ def feedback():
         'feedback': request.form.get('feedback'),
     }
 
-    r = requests.post(url, verify=False, json=data)
+    requests.post(url, verify=False, json=data)
+
     return render_template(
         'thanks.html'
     )
