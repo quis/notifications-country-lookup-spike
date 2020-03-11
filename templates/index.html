@@ -1,43 +1,68 @@
-<style type="text/css">
-  *{
-    font-family: -apple-system, sans-serif;
-    font-size: 27px;
-  }
-  form, p, div {
-    margin: 1em 3em
-  }
-  label, input, button {
-    display: block;
-    margin-bottom: 1em;
-  }
-  button {
-    display: inline-block;
-    margin-right: 0.62em;
-    padding: 0 0.3em;
-  }
-  #result {
-    background: rgba(255, 255, 180, 0.3);
-    padding: 1em 0;
-  }
-</style>
-<form method="get">
-   <label for="search_term">Find out if GOV.UK Notify can send a letter to a country</label>
-   <label style="color: #666">For example USA or España</label>
-   <input type="text" name="search_term" id="search_term" value="{{search_term}}">
-   <button type="submit">Check</button>
-</form>
-{% if search_term %}
-  <div id="result">
-  {{ result }}
-  {% if result %}
-  <form method="post" action="/feedback">
-    <label for="feedback">Does that feel correct?</label>
-    <input type="hidden" name="search_term" value="{{search_term}}">
-    <input type="hidden" name="country" value="{{country}}">
-    <input type="hidden" name="postage" value="{{postage}}">
-    <button type="submit" name="feedback" value="yes">Yes</button>
-    <button type="submit" name="feedback" value="no">No</button>
-  </form>
-  {% endif %}
-  </div>
-{% endif %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Find out if GOV.UK Notify can send a letter to a country</title>
+    <style type="text/css">
+      *{
+        font-family: -apple-system, sans-serif;
+        font-size: 27px;
+      }
+      form, p, div {
+        margin: 1em 3em
+      }
+      label, input, button {
+        display: block;
+        margin-bottom: 1em;
+      }
+      button {
+        display: inline-block;
+        margin-right: 0.62em;
+      }
+      button, input {
+        padding: 0.3em 0.6em;
+      }
+      input {
+        display: block;
+        width: 25em;
+        border: 1px solid black;
+      }
+      #result {
+        background: rgba(255, 255, 180, 0.3);
+        box-shadow: 0 -1px 0 0 rgba(255, 255, 180, 1);
+        padding: 1em 0;
+        margin: 0 -3em;
+        padding: 1em 3em;
+      }
+    </style>
+  </head>
+  <body>
+    <form method="get">
+       <label for="search_term">Find out if GOV.UK Notify can send a letter to a country</label>
+       <label style="color: #666">For example USA or España</label>
+       <input type="text" name="search_term" id="search_term" value="{{search_term}}">
+       <button type="submit">Check</button>
+    </form>
+    {% if search_term %}
+      <div id="result">
+        {% if found %}
+          <p>✅</p>
+          <p>We’d address this letter to <b>{{ country }}</b></p>
+          <p>We’d charge for postage to <b>{{ postage }}</b>*</p>
+        {% else %}
+          <p>⚠️</p><p>We don’t think {{ search_term }} is a country</p>
+        {% endif %}
+        <form method="post" action="/feedback">
+          <label for="feedback">Does that feel correct?</label>
+          <input type="hidden" name="search_term" value="{{search_term}}">
+          <input type="hidden" name="country" value="{{country}}">
+          <input type="hidden" name="postage" value="{{postage}}">
+          <button type="submit" name="feedback" value="yes">Yes</button>
+          <button type="submit" name="feedback" value="no">No</button>
+        </form>
+        <p>
+          * the 3 postage zones are United Kingdom, Europe and rest of world
+        </p>
+      </div>
+    {% endif %}
+  </body>
+</html>

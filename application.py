@@ -2,7 +2,7 @@ import json
 import http.client
 import requests
 from urllib.parse import quote_plus
-from flask import Flask, Markup, render_template, request
+from flask import Flask, Markup, render_template, request, redirect
 from notifications_utils.countries import Country, CountryNotFoundError
 
 
@@ -15,23 +15,14 @@ def hello():
     country = ''
     postage = ''
     result = ''
+    found = False
 
-    if search_term:
-        try:
-            country = Country(search_term).canonical_name
-            postage = Country(search_term).postage_zone
-            result = Markup("""
-                <p>✅</p>
-                <p>We’d address this letter to <b>{}</b></p>
-                <p>We’d charge for postage to <b>{}</b></p>
-            """.format(
-                country,
-                postage,
-            ))
-        except CountryNotFoundError:
-            result = Markup(
-                '<p>⚠️</p><p>We don’t think {} is a country</p>'.format(search_term)
-            )
+    try:
+        country = Country(search_term).canonical_name
+        postage = Country(search_term).postage_zone
+        found = True
+    except CountryNotFoundError:
+        pass
 
     return render_template(
         'index.html',
@@ -39,6 +30,7 @@ def hello():
         result=result,
         country=country,
         postage=postage,
+        found=found,
     )
 
 
@@ -55,6 +47,11 @@ def feedback():
 
     requests.post(url, verify=False, json=data)
 
+    return redirect('/thanks')
+
+
+@app.route('/thanks', methods=['GET'])
+def thanks():
     return render_template(
         'thanks.html'
     )
