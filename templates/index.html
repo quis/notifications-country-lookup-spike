@@ -59,9 +59,11 @@
           <button type="submit" name="feedback" value="yes">Yes</button>
           <button type="submit" name="feedback" value="no">No</button>
         </form>
-        <p>
-          * the 3 postage zones are United Kingdom, Europe and rest of world
-        </p>
+        {% if found %}
+          <p>
+            * the 3 postage zones are United Kingdom, Europe and rest of world
+          </p>
+        {% endif %}
       </div>
     {% endif %}
   </body>
